@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="code-analysis.md" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="../CustAssesment.Api/CustAssesment.Api.csproj" />
+  <Project Path="../Shared/Shared.csproj" />
+  <Project Path="CustAssesment.csproj" />
+</Solution>

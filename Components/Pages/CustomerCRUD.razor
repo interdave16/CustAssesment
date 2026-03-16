@@ -1,0 +1,196 @@
+﻿@page "/customerCrud"
+@rendermode InteractiveServer
+
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Forms
+@using CustAssesment.Interfaces
+@using Shared.Models
+@using Shared.Models
+@inject ICustomerService CustomerService
+
+<h3>Customer CRUD</h3>
+
+<div class="mb-3">
+ <button type="button" class="btn btn-primary" @onclick="NewCustomer">
+  Add New Customer
+ </button>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(Message))
+{
+ <div class="alert alert-info">@Message</div>
+}
+
+<div class="row">
+ <div class="col-md-7">
+  <table class="table table-bordered table-striped">
+   <thead>
+    <tr>
+     <th>Id</th>
+     <th>Name</th>
+     <th>City</th>
+     <th>State</th>
+     <th>Email</th>
+     <th style="width: 180px;">Actions</th>
+    </tr>
+   </thead>
+   <tbody>
+    @if (Customers.Count == 0)
+    {
+     <tr>
+      <td colspan="6">No customers found.</td>
+     </tr>
+    }
+    else
+    {
+     @foreach (var customer in Customers)
+     {
+      <tr>
+       <td>@customer.Id</td>
+       <td>@customer.Name</td>
+       <td>@customer.City</td>
+       <td>@customer.State</td>
+       <td>@customer.Email</td>
+       <td>
+        <button type="button"
+                class="btn btn-sm btn-warning me-2"
+                @onclick="() => EditCustomer(customer)">
+         Edit
+        </button>
+
+        <button type="button"
+                class="btn btn-sm btn-danger"
+                @onclick="() => DeleteCustomer(customer.Id)">
+         Delete
+        </button>
+       </td>
+      </tr>
+     }
+    }
+   </tbody>
+  </table>
+ </div>
+
+ <div class="col-md-5">
+  <div class="card">
+   <div class="card-header">
+    @(IsEditMode ? "Edit Customer" : "Add Customer")
+   </div>
+
+   <div class="card-body">
+    <EditForm Model="CurrentCustomer" OnValidSubmit="SaveCustomer">
+     <DataAnnotationsValidator />
+     <ValidationSummary />
+
+     <div class="mb-3">
+      <label class="form-label">Name</label>
+      <InputText class="form-control" @bind-Value="CurrentCustomer.Name" />
+      <ValidationMessage For="() => CurrentCustomer.Name" />
+     </div>
+
+     <div class="mb-3">
+      <label class="form-label">City</label>
+      <InputText class="form-control" @bind-Value="CurrentCustomer.City" />
+      <ValidationMessage For="() => CurrentCustomer.City" />
+     </div>
+
+     <div class="mb-3">
+      <label class="form-label">State</label>
+      <InputText class="form-control" @bind-Value="CurrentCustomer.State" />
+      <ValidationMessage For="() => CurrentCustomer.State" />
+     </div>
+
+     <div class="mb-3">
+      <label class="form-label">Email</label>
+      <InputText class="form-control" @bind-Value="CurrentCustomer.Email" />
+      <ValidationMessage For="() => CurrentCustomer.Email" />
+     </div>
+
+     <button type="submit" class="btn btn-success me-2">
+      @(IsEditMode ? "Update" : "Save")
+     </button>
+
+     <button type="button" class="btn btn-secondary" @onclick="ClearForm">
+      Cancel
+     </button>
+    </EditForm>
+   </div>
+  </div>
+ </div>
+</div>
+
+@code {
+ private List<Customer> Customers = new();
+ private Customer CurrentCustomer = new();
+ private bool IsEditMode = false;
+ private string Message = "";
+
+ protected override async Task OnInitializedAsync()
+ {
+  await LoadCustomers();
+ }
+
+ private async Task LoadCustomers()
+ {
+  Customers = await CustomerService.GetCustomersAsync();
+ }
+
+ private void NewCustomer()
+ {
+  CurrentCustomer = new Customer();
+  IsEditMode = false;
+  Message = "";
+ }
+
+ private void EditCustomer(Customer customer)
+ {
+  CurrentCustomer = new Customer
+  {
+   Id = customer.Id,
+   Name = customer.Name,
+   City = customer.City,
+   State = customer.State,
+   Email = customer.Email
+  };
+
+  IsEditMode = true;
+  Message = "";
+ }
+
+ private async Task SaveCustomer()
+ {
+  if (IsEditMode)
+  {
+   var success = await CustomerService.UpdateCustomerAsync(CurrentCustomer);
+   Message = success ? "Customer updated successfully." : "Update failed.";
+  }
+  else
+  {
+   var created = await CustomerService.CreateCustomerAsync(CurrentCustomer);
+   Message = created is not null ? "Customer created successfully." : "Create failed.";
+  }
+
+  await LoadCustomers();
+  ClearForm();
+ }
+
+ private async Task DeleteCustomer(int id)
+ {
+  var success = await CustomerService.DeleteCustomerAsync(id);
+  Message = success ? "Customer deleted successfully." : "Delete failed.";
+
+  await LoadCustomers();
+
+  if (CurrentCustomer.Id == id)
+  {
+   ClearForm();
+  }
+ }
+
+ private void ClearForm()
+ {
+  CurrentCustomer = new Customer();
+  IsEditMode = false;
+  Message = "";
+ }
+}

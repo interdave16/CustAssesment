@@ -11,6 +11,7 @@
 								<Folder Include="Pages\" />
 				</ItemGroup>
 
+				
 				<ItemGroup>
 								<ProjectReference Include="..\Shared\Shared.csproj" />
 				</ItemGroup>
